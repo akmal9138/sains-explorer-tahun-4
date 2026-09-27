@@ -1,0 +1,1659 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAINS EXPLORER TAHUN 4 - Jelajah Dunia Sains</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            blue: '#2563EB',
+                            teal: '#0D9488',
+                            amber: '#D97706',
+                            purple: '#7C3AED',
+                            rose: '#E11D48',
+                            emerald: '#059669',
+                            dark: '#0F172A'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Comic Sans MS', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+            color: #f8fafc;
+            min-height: 100vh;
+            user-select: none;
+        }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+        }
+        .glass-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-btn:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.18);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .glass-btn:active:not(:disabled) {
+            transform: translateY(0);
+        }
+        .shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+        .bounce-short {
+            animation: bounce 0.6s ease infinite alternate;
+        }
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-8px); }
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen text-slate-100 antialiased overflow-x-hidden">
+
+    <!-- Application Navigation Bar -->
+    <header class="sticky top-0 z-40 w-full glass-card border-b border-slate-700/60 px-4 py-3">
+        <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3 cursor-pointer" onclick="app.showStartScreen()">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-2xl shadow-lg shadow-cyan-500/30">
+                    🧪
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-lg md:text-xl tracking-tight bg-gradient-to-r from-cyan-400 via-teal-300 to-blue-400 bg-clip-text text-transparent">
+                        SAINS EXPLORER
+                    </h1>
+                    <p class="text-xs text-slate-400 font-medium">Tahun 4 • KSSR Semakan</p>
+                </div>
+            </div>
+
+            <!-- Dynamic Stats Bar (Visible during gameplay) -->
+            <div id="topStatsBar" class="hidden flex flex-wrap items-center gap-2 md:gap-4 text-xs md:text-sm font-semibold">
+                <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-800/80 border border-amber-500/30 text-amber-300">
+                    <span>⭐</span> <span id="statScore">0</span> <span class="text-slate-400 font-normal">Mata</span>
+                </div>
+                <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-800/80 border border-rose-500/30 text-rose-400">
+                    <span>🔥</span> <span id="statStreak">0</span> <span id="streakBonusBadge" class="hidden text-[10px] bg-rose-500 text-white px-1.5 py-0.5 rounded font-bold">2X</span>
+                </div>
+                <div class="flex items-center gap-1 px-3 py-1.5 rounded-full bg-slate-800/80 border border-red-500/30 text-red-400" id="statLives">
+                    ❤️ ❤️ ❤️
+                </div>
+                <button onclick="app.useHint()" id="btnHint" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-200 transition">
+                    💡 <span id="statHints">3</span>/3 <span class="hidden sm:inline text-[11px] opacity-80">(-5pt)</span>
+                </button>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button onclick="soundSystem.toggleMute()" id="btnSound" class="p-2 rounded-lg glass-btn text-slate-300 hover:text-white" title="Tukar Bunyi">
+                    🔊
+                </button>
+                <button onclick="app.showTeacherDashboard()" class="px-3 py-1.5 rounded-lg glass-btn text-xs font-semibold text-teal-300 hover:text-teal-200 border-teal-500/30">
+                    📊 Guru
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content View Area -->
+    <main class="flex-grow max-w-6xl w-full mx-auto p-4 md:p-6 flex flex-col justify-center">
+
+        <!-- 1. START SCREEN VIEW -->
+        <section id="viewStart" class="w-full max-w-3xl mx-auto text-center space-y-6 py-6">
+            <div class="relative inline-block my-2">
+                <div class="absolute -inset-1 bg-gradient-to-r from-teal-500 via-blue-500 to-indigo-500 rounded-3xl blur-lg opacity-70 animate-pulse"></div>
+                <div class="relative px-8 py-10 glass-card rounded-3xl border border-slate-700/80">
+                    <div class="text-6xl mb-4 bounce-short">🚀 🧪 🪐</div>
+                    <h1 class="text-3xl md:text-5xl font-black tracking-tight text-white mb-2">
+                        SAINS EXPLORER TAHUN 4
+                    </h1>
+                    <p class="text-teal-300 font-semibold text-lg md:text-xl">
+                        "Jelajah Dunia Sains Sekolah Rendah"
+                    </p>
+                    <p class="text-slate-300 text-sm mt-3 max-w-lg mx-auto">
+                        Uji penguasaan 60 soalan interaktif meliputi 6 Dunia Sains. Kumpul lencana, tingkatkan streak, dan jadilah <strong>Master Sains</strong>!
+                    </p>
+                </div>
+            </div>
+
+            <div class="glass-card p-6 rounded-2xl max-w-md mx-auto space-y-4 border border-slate-700">
+                <div class="text-left">
+                    <label class="block text-xs font-bold text-teal-300 uppercase tracking-wider mb-2">Nama Saintis Muda:</label>
+                    <input type="text" id="inputPlayerName" value="Saintis Muda" maxlength="25" class="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-600 text-white font-semibold focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30">
+                </div>
+
+                <button onclick="app.startMission()" class="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-slate-950 font-black text-lg tracking-wide shadow-lg shadow-teal-500/30 transform active:scale-95 transition">
+                    ▶ MULA MISI PENJELAJAHAN
+                </button>
+            </div>
+
+            <!-- Construct & Structure Quick Info -->
+            <div class="grid grid-cols-3 gap-3 max-w-md mx-auto text-center text-xs">
+                <div class="p-3 rounded-xl glass-card border border-blue-500/30">
+                    <div class="font-bold text-blue-400 text-base">20</div>
+                    <div class="text-slate-300">Mengetahui</div>
+                </div>
+                <div class="p-3 rounded-xl glass-card border border-emerald-500/30">
+                    <div class="font-bold text-emerald-400 text-base">20</div>
+                    <div class="text-slate-300">Mengaplikasi</div>
+                </div>
+                <div class="p-3 rounded-xl glass-card border border-purple-500/30">
+                    <div class="font-bold text-purple-400 text-base">20</div>
+                    <div class="text-slate-300">Menaakul</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. ZONE SELECTION / WORLD MAP VIEW -->
+        <section id="viewZoneMap" class="hidden w-full space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-card p-5 rounded-2xl">
+                <div>
+                    <h2 class="text-2xl font-extrabold text-white flex items-center gap-2">
+                        <span>🗺️</span> Peta Penjelajah Sains
+                    </h2>
+                    <p class="text-xs text-slate-300">Pilih zon untuk menjawab soalan. Selesaikan semua 60 soalan!</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="text-right">
+                        <div class="text-xs text-slate-400">Kemajuan Keseluruhan</div>
+                        <div class="text-lg font-black text-cyan-300" id="overallProgressText">0 / 60 Soalan</div>
+                    </div>
+                    <button onclick="app.showStartScreen()" class="px-3 py-2 rounded-xl glass-btn text-xs text-slate-300">
+                        🏠 Mula
+                    </button>
+                </div>
+            </div>
+
+            <!-- Overall Progress Bar -->
+            <div class="w-full bg-slate-800 rounded-full h-3 overflow-hidden border border-slate-700">
+                <div id="overallProgressBar" class="bg-gradient-to-r from-teal-400 via-cyan-400 to-blue-500 h-full w-0 transition-all duration-500"></div>
+            </div>
+
+            <!-- 6 Zones Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="zoneGrid">
+                <!-- Zone cards injected dynamically -->
+            </div>
+        </section>
+
+        <!-- 3. QUESTION GAMEPLAY VIEW -->
+        <section id="viewQuiz" class="hidden w-full max-w-3xl mx-auto space-y-5">
+            <!-- Question Header Card -->
+            <div class="glass-card p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3 border border-slate-700">
+                <div class="flex items-center gap-3">
+                    <button onclick="app.showZoneMap()" class="p-2 rounded-xl glass-btn text-xs" title="Kembali ke Peta">
+                        ⬅ Peta
+                    </button>
+                    <div>
+                        <span class="text-xs font-bold px-2.5 py-1 rounded-md bg-slate-800 text-cyan-300 border border-cyan-500/30" id="qNumBadge">
+                            SOALAN 1/60
+                        </span>
+                        <span class="ml-2 text-xs font-bold px-2.5 py-1 rounded-md bg-purple-900/60 text-purple-300 border border-purple-500/30" id="qConstructBadge">
+                            MENGAPLIKASI
+                        </span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 text-xs">
+                    <span class="text-slate-400">Aras:</span>
+                    <span id="qDiffBadge" class="font-bold text-amber-400 bg-amber-950/60 px-2 py-0.5 rounded border border-amber-500/30">
+                        Sederhana
+                    </span>
+                </div>
+            </div>
+
+            <!-- Main Question Card -->
+            <div class="glass-card p-6 md:p-8 rounded-3xl space-y-6 border border-slate-700/80 shadow-2xl relative overflow-hidden" id="quizCard">
+                <!-- Question Topic & Metadata -->
+                <div class="text-xs font-semibold text-teal-400 uppercase tracking-wider flex items-center gap-2">
+                    <span>📌</span> <span id="qTopicText">Topik Sains</span>
+                </div>
+
+                <!-- Diagram / Table Container (If applicable) -->
+                <div id="qDiagramContainer" class="hidden bg-slate-900/80 p-4 rounded-2xl border border-slate-700 text-sm overflow-x-auto">
+                    <!-- Dynamic diagram or table content -->
+                </div>
+
+                <!-- Question Text -->
+                <h3 id="qQuestionText" class="text-lg md:text-xl font-bold leading-relaxed text-slate-100">
+                    Memuatkan soalan...
+                </h3>
+
+                <!-- Interactive Input Container (MCQ, Multi, or Subjective) -->
+                <div id="qInteractionContainer" class="space-y-3 pt-2">
+                    <!-- Dynamic interactive UI elements injected here -->
+                </div>
+
+                <!-- Submit / Hint Row -->
+                <div class="pt-4 border-t border-slate-700/60 flex items-center justify-between gap-3">
+                    <button id="btnQuizHint" onclick="app.useHint()" class="px-4 py-2.5 rounded-xl glass-btn text-amber-300 text-xs font-bold flex items-center gap-2">
+                        💡 Petunjuk Petua
+                    </button>
+
+                    <button id="btnSubmitAnswer" onclick="app.submitCurrentAnswer()" class="px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-sm tracking-wide shadow-lg shadow-cyan-500/20 active:scale-95 transition">
+                        SEMAK JAWAPAN ✓
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. FEEDBACK / EXPLANATION MODAL -->
+        <div id="modalFeedback" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+            <div class="glass-card max-w-lg w-full p-6 rounded-3xl border border-slate-700 space-y-5 animate-bounce-short shadow-2xl">
+                <div class="text-center space-y-2">
+                    <div id="fbStatusIcon" class="text-5xl">✅</div>
+                    <h3 id="fbStatusTitle" class="text-2xl font-black text-emerald-400 tracking-tight">BETUL!</h3>
+                    <div id="fbPointsTag" class="text-xs font-bold text-amber-300 bg-amber-950/60 inline-block px-3 py-1 rounded-full border border-amber-500/40">
+                        +10 Mata
+                    </div>
+                </div>
+
+                <div class="bg-slate-900/90 p-4 rounded-2xl border border-slate-700/80 text-xs md:text-sm text-slate-200 leading-relaxed space-y-2">
+                    <div class="font-bold text-cyan-300 flex items-center gap-1.5">
+                        <span>📖</span> Penerangan Sains:
+                    </div>
+                    <p id="fbExplanationText">Penerangan ringkas pembelajaran sains.</p>
+                </div>
+
+                <button onclick="app.nextQuestion()" class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-black text-sm tracking-wider shadow-lg active:scale-95 transition">
+                    TERUSKAN PENJELAJAHAN ➔
+                </button>
+            </div>
+        </div>
+
+        <!-- 5. FINAL RESULT SUMMARY VIEW -->
+        <section id="viewResult" class="hidden w-full max-w-3xl mx-auto space-y-6 py-4">
+            <div class="glass-card p-6 md:p-8 rounded-3xl text-center border border-slate-700 space-y-6">
+                <div class="text-6xl mb-2">🏆</div>
+                <h2 class="text-3xl font-black text-white">MISI SAINTIS MUDA SELESAI!</h2>
+                <p class="text-slate-300 text-sm">Tahniah, <span id="resPlayerName" class="font-bold text-cyan-300">Player</span>! Anda telah menyelesaikan penerokaan Sains Explorer Tahun 4.</p>
+
+                <!-- Award Badge Header -->
+                <div id="resAwardBadge" class="p-4 rounded-2xl bg-gradient-to-r from-amber-500/20 via-yellow-500/20 to-amber-500/20 border border-amber-500/40 text-amber-300 font-extrabold text-xl">
+                    🏆 MASTER SAINS
+                </div>
+
+                <!-- Stats Overview Grid -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
+                    <div class="p-3 rounded-2xl bg-slate-900/80 border border-slate-700">
+                        <div class="text-xs text-slate-400">Jumlah Mata</div>
+                        <div class="text-xl font-extrabold text-amber-400" id="resScore">0</div>
+                    </div>
+                    <div class="p-3 rounded-2xl bg-slate-900/80 border border-slate-700">
+                        <div class="text-xs text-slate-400">Peratusan</div>
+                        <div class="text-xl font-extrabold text-cyan-400" id="resPercent">0%</div>
+                    </div>
+                    <div class="p-3 rounded-2xl bg-slate-900/80 border border-slate-700">
+                        <div class="text-xs text-slate-400">Betul / Salah</div>
+                        <div class="text-xl font-extrabold text-emerald-400"><span id="resCorrect">0</span> / <span id="resWrong" class="text-rose-400">0</span></div>
+                    </div>
+                    <div class="p-3 rounded-2xl bg-slate-900/80 border border-slate-700">
+                        <div class="text-xs text-slate-400">Streak Terbaik</div>
+                        <div class="text-xl font-extrabold text-rose-400" id="resBestStreak">0 🔥</div>
+                    </div>
+                </div>
+
+                <!-- Construct Breakdown -->
+                <div class="bg-slate-900/90 p-5 rounded-2xl border border-slate-700 space-y-3 text-left">
+                    <h4 class="text-xs font-bold text-teal-300 uppercase tracking-wider">📊 Analisis Penguasaan Konstruk:</h4>
+                    
+                    <div class="space-y-2 text-xs font-semibold">
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span>🧠 MENGETAHUI</span>
+                                <span id="resConstructK">0/20</span>
+                            </div>
+                            <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+                                <div id="resBarK" class="bg-blue-500 h-full w-0 transition-all duration-500"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span>🔧 MENGAPLIKASI</span>
+                                <span id="resConstructA">0/20</span>
+                            </div>
+                            <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+                                <div id="resBarA" class="bg-emerald-500 h-full w-0 transition-all duration-500"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span>🔎 MENAAKUL</span>
+                                <span id="resConstructN">0/20</span>
+                            </div>
+                            <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+                                <div id="resBarN" class="bg-purple-500 h-full w-0 transition-all duration-500"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Revision Recommendations -->
+                <div class="bg-slate-900/90 p-5 rounded-2xl border border-slate-700 space-y-2 text-left">
+                    <h4 class="text-xs font-bold text-amber-300 uppercase tracking-wider">📚 Cadangan Ulang Kaji Topik:</h4>
+                    <ul id="resRevisionList" class="text-xs text-slate-300 space-y-1 list-disc list-inside">
+                        <li>Semua topik telah dikuasai dengan cemerlang! Syabas!</li>
+                    </ul>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-wrap gap-3">
+                    <button onclick="app.resetGame()" class="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-black text-sm">
+                        🔄 MAIN SEMULA
+                    </button>
+                    <button onclick="app.showTeacherDashboard()" class="flex-1 py-3 px-4 rounded-xl glass-btn text-cyan-300 font-bold text-sm">
+                        📊 PAPARAN GURU
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. TEACHER DASHBOARD VIEW / MODAL -->
+        <section id="viewTeacher" class="hidden w-full max-w-4xl mx-auto space-y-6">
+            <div class="glass-card p-6 rounded-3xl border border-slate-700 space-y-6">
+                <div class="flex items-center justify-between border-b border-slate-700 pb-4">
+                    <div>
+                        <h2 class="text-2xl font-black text-white flex items-center gap-2">
+                            <span>📊</span> Ringkasan Prestasi & Dashboard Guru
+                        </h2>
+                        <p class="text-xs text-slate-400">Analisis penguasaan murid untuk Sains Tahun 4 KSSR</p>
+                    </div>
+                    <button onclick="app.showZoneMap()" class="px-3 py-1.5 rounded-xl glass-btn text-xs text-slate-300">
+                        ✖ Tutup
+                    </button>
+                </div>
+
+                <!-- Aggregated Stats -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                    <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-700">
+                        <div class="text-xs text-slate-400">Sesi Permainan</div>
+                        <div class="text-2xl font-extrabold text-cyan-400" id="tchTotalSessions">1</div>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-700">
+                        <div class="text-xs text-slate-400">Purata Skor</div>
+                        <div class="text-2xl font-extrabold text-amber-400" id="tchAvgScore">0 pts</div>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-700">
+                        <div class="text-xs text-slate-400">Ketepatan Soalan</div>
+                        <div class="text-2xl font-extrabold text-emerald-400" id="tchAccuracy">0%</div>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-700">
+                        <div class="text-xs text-slate-400">Konstruk Utama</div>
+                        <div class="text-2xl font-extrabold text-purple-400" id="tchTopConstruct">Mengetahui</div>
+                    </div>
+                </div>
+
+                <!-- Weakest Topics Analysis -->
+                <div class="bg-slate-900/90 p-5 rounded-2xl border border-slate-700 space-y-3">
+                    <h4 class="text-xs font-bold text-rose-300 uppercase tracking-wider">⚠️ Topik Paling Banyak Perlu Perhatian / Pemulihan:</h4>
+                    <div id="tchWeakTopics" class="text-xs text-slate-300 space-y-2">
+                        <p class="italic text-slate-400">Belum ada data jawapan salah recorded.</p>
+                    </div>
+                </div>
+
+                <!-- Detailed Zone Breakdown Table -->
+                <div class="overflow-x-auto bg-slate-900/90 rounded-2xl border border-slate-700">
+                    <table class="w-full text-left text-xs text-slate-300">
+                        <thead class="bg-slate-800 text-teal-300 uppercase font-bold border-b border-slate-700">
+                            <tr>
+                                <th class="p-3">Dunia / Zon</th>
+                                <th class="p-3">Soalan Dijawab</th>
+                                <th class="p-3">Ketepatan</th>
+                                <th class="p-3">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tchTableBody">
+                            <!-- Injected dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        /* Web Audio API Sound Synthesizer for zero-dependency audio */
+        class SoundSystem {
+            constructor() {
+                this.ctx = null;
+                this.muted = false;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) this.ctx = new AudioCtx();
+                }
+            }
+
+            toggleMute() {
+                this.muted = !this.muted;
+                const btn = document.getElementById('btnSound');
+                if (btn) btn.innerText = this.muted ? '🔇' : '🔊';
+            }
+
+            playCorrect() {
+                if (this.muted) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523.25, now); // C5
+                osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.1); // E5
+                osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.2); // G5
+
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.35);
+            }
+
+            playWrong() {
+                if (this.muted) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(180, now);
+                osc.frequency.linearRampToValueAtTime(110, now + 0.25);
+
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.25);
+            }
+
+            playClick() {
+                if (this.muted) return;
+                this.init();
+                if (!this.ctx) return;
+
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.exponentialRampToValueAtTime(200, now + 0.05);
+
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.05);
+            }
+        }
+
+        const soundSystem = new SoundSystem();
+    </script>
+
+    <script>
+        /*
+          QUESTION BANK DATA STRUCTURE:
+          60 Complete items across 6 zones.
+          Construct breakdown: 20 Mengetahui (K), 20 Mengaplikasi (A), 20 Menaakul (N).
+          Types: MCQ (30), Multi-type (15), Subjective (15).
+        */
+        const QUESTIONS_BANK = [
+            // ==========================================
+            // ZON 1: DUNIA HIDUPAN (Questions 1 to 10)
+            // ==========================================
+            {
+                id: 1, zone: 1, topic: "Gigi", construct: "MENGETAHUI", type: "mcq", difficulty: "Mudah",
+                question: "Rajah menunjukkan sebatang gigi manusia yang tajam di bahagian hadapan kepingan gusi.\nApakah fungsi utama gigi taring?",
+                options: ["Memotong makanan", "Mengoyakkan makanan", "Melumatkan makanan", "Menyerap khasiat makanan"],
+                answer: 1,
+                explanation: "Gigi taring berbentuk tajam dan berfungsi khas untuk mengoyakkan makanan seperti daging.",
+                hint: "Fikirkan gigi tajam haiwan karnivor yang digunakan untuk mengoyak daging."
+            },
+            {
+                id: 2, zone: 1, topic: "Gigi", construct: "MENGAPLIKASI", type: "mcq", difficulty: "Sederhana",
+                question: "Aishah kerap makan coklat dan jarang menggosok gigi sebelum tidur. Apakah kesan tabiat ini terhadap giginya?",
+                options: ["Gigi menjadi semakin kuat", "Gigi kekal bertambah bilangan", "Gigi mengalami kerosakan dan berlubang", "Gigi bertukar menjadi gigi susu"],
+                answer: 2,
+                explanation: "Makanan manis yang tersisa menghasilkan asid oleh bakteria yang mereputkan enamel gigi dan menyebabkan gigi berlubang.",
+                hint: "Bakteria dalam mulut menyukai gula dan menghasilkan asid yang merosakkan gigi."
+            },
+            {
+                id: 3, zone: 1, topic: "Haiwan", construct: "MENAAKUL", type: "mcq", difficulty: "Mencabar",
+                question: "Seekor belalang disapu lapisan minyak pada seluruh bahagian badannya dan dimasukkan ke dalam balang berudara. Selepas satu jam, belalang itu mati. Mengapa?",
+                options: ["Minyak menghalang makanan masuk", "Liang spirakel pada badannya tersumbat oleh minyak", "Belalang tidak mendapat cahaya matahari", "Minyak merosakkan kaki belalang"],
+                answer: 1,
+                explanation: "Belalang bernafas melalui liang spirakel pada badannya. Sapuan minyak menyumbat spirakel menyebabkan ia tidak mendapat oksigen.",
+                hint: "Ingat organ pernafasan serangga terletak di bahagian sisi badannya."
+            },
+            {
+                id: 4, zone: 1, topic: "Tumbuhan", construct: "MENGAPLIKASI", type: "mcq", difficulty: "Sederhana",
+                question: "Apakah yang diperlukan oleh tumbuhan hijau untuk menjalankan proses fotosintesis?",
+                options: ["Oksigen, minyak, dan tanah", "Cahaya matahari, klorofil, air, dan karbon dioksida", "Gula, nitrogen, dan cacing", "Baja kimia dan ais"],
+                answer: 1,
+                explanation: "Fotosintesis memerlukan cahaya matahari, klorofil (zat hijau), air dari akar, dan gas karbon dioksida dari udara.",
+                hint: "Tumbuhan memerlukan gas yang dihembus oleh manusia serta cahaya dari langit."
+            },
+            {
+                id: 5, zone: 1, topic: "Rangsangan & Gerak Balas", construct: "MENGETAHUI", type: "Mudah", type: "mcq",
+                question: "Apabila tangan Sarah secara tidak sengaja tersentuh duri pokok bunga ros yang tajam, apakah gerak balas serta-merta yang dilakukannya?",
+                options: ["Menutup mata rapat-rapat", "Menarik tangan dengan serta-merta", "Meniup jari yang sakit", "Memegang duri tersebut"],
+                answer: 1,
+                explanation: "Manusia bergerak balas terhadap rangsangan sakit dengan menarik anggota badan dengan serta-merta untuk elak kecederaan.",
+                hint: "Apakah tindakan automatik badan apabila disentuh benda tajam atau panas?"
+            },
+            {
+                id: 6, zone: 1, topic: "Haiwan", construct: "MENGAPLIKASI", type: "multi", subType: "true_false", difficulty: "Sederhana",
+                question: "Tentukan sama ada pernyataan berikut BETUL atau SALAH mengenai pembiakan dan perlindungan haiwan.",
+                statements: [
+                    { text: "Katak bertelur dengan bilangan yang banyak di dalam air.", correct: true },
+                    { text: "Ayam menyembunyikan telurnya di dalam sarang dan mengeramkannya.", correct: true },
+                    { text: "Ikan lumba-lumba bertelur di atas pasir pantai.", correct: false }
+                ],
+                explanation: "Katak bertelur banyak untuk memastikan kelangsungan hidup anak, ayam mengeramkan telur, manakala ikan lumba-lumba ialah mamalia yang melahirkan anak.",
+                hint: "Ingat bahawa ikan lumba-lumba adalah mamalia, bukan ikan bertelur."
+            },
+            {
+                id: 7, zone: 1, topic: "Haiwan", construct: "MENGETAHUI", type: "multi", subType: "match", difficulty: "Mudah",
+                question: "Padankan haiwan berikut dengan organ pernafasan utama yang betul.",
+                pairs: [
+                    { item: "Ikan Mas", match: "Insang" },
+                    { item: "Cacing Tanah", match: "Kulit Lembap" },
+                    { item: "Kucing", match: "Peparu" }
+                ],
+                optionsPool: ["Insang", "Kulit Lembap", "Peparu", "Spirakel"],
+                explanation: "Ikan bernafas guna insang, cacing guna kulit lembap di tanah, manakala kucing bernafas guna peparu.",
+                hint: "Gunakan organ yang sesuai mengikut habitat haiwan tersebut."
+            },
+            {
+                id: 8, zone: 1, topic: "Sistem Pernafasan", construct: "MENAAKUL", type: "subjective", difficulty: "Mencabar",
+                question: "Mengapakah kadar pernafasan seorang murid bertambah cepat dan termengah-mengah selepas berlari 100 meter?",
+                keywords: ["oksigen", "tenaga", "jantung", "aktif", "badan"],
+                sampleAnswer: "Kerana badan memerlukan lebih banyak oksigen untuk menghasilkan tenaga semasa aktiviti cergas.",
+                explanation: "Semasa berlari, otot bekerja keras dan memerlukan lebih banyak oksigen dan tenaga, menyebabkan kadar pernafasan meningkat.",
+                hint: "Taip kata kunci seperti 'oksigen' atau 'tenaga'."
+            },
+            {
+                id: 9, zone: 1, topic: "Makanan & Kepentingan", construct: "MENGAPLIKASI", type: "subjective", difficulty: "Sederhana",
+                question: "Nyatakan fungsi utama kelas makanan protein seperti ikan, ayam, dan telur kepada tubuh manusia.",
+                keywords: ["tumbesaran", "bina", "sel", "tumbuh", "rosak"],
+                sampleAnswer: "Untuk tumbesaran badan dan membaiki sel-sel tisu yang rosak.",
+                explanation: "Protein penting untuk pembesaran kanak-kanak dan menggantikan tisu badan yang rosak.",
+                hint: "Taip kata kunci seperti 'tumbesaran' atau 'bina sel'."
+            },
+            {
+                id: 10, zone: 1, topic: "Tumbuhan", construct: "MENAAKUL", type: "subjective", difficulty: "Sederhana",
+                question: "Apakah yang akan berlaku kepada sehelai daun tumbuhan yang dibalut rapi dengan kertas aluminium hitam selepas satu minggu?",
+                keywords: ["kuning", "layu", "fotosintesis", "cahaya", "mati"],
+                sampleAnswer: "Daun bertukar menjadi kekuningan dan layu kerana tidak mendapat cahaya matahari untuk fotosintesis.",
+                explanation: "Tanpa cahaya matahari, klorofil dalam daun tidak dapat menghasilkan makanan melalui fotosintesis.",
+                hint: "Taip kata kunci seperti 'cahaya' atau 'fotosintesis'."
+            },
+
+            // ==========================================
+            // ZON 2: DUNIA CAHAYA & BUNYI (Questions 11 to 20)
+            // ==========================================
+            {
+                id: 11, zone: 2, topic: "Cahaya", construct: "MENGETAHUI", type: "mcq", difficulty: "Mudah",
+                question: "Apabila cahaya dari lampu suluh dihalang oleh satu objek legap seperti kadbod tebal, apakah yang akan terbentuk di belakang kadbod?",
+                options: ["Pelangi", "Bayang-bayang", "Pantulan cermin", "Cahaya biasan"],
+                answer: 1,
+                explanation: "Cahaya bergerak dalam garis lurus. Apabila dihalang oleh objek legap, kawasan gelap yang dipanggil bayang-bayang terhasil.",
+                hint: "Objek gelap terhasil apabila cahaya dihalang."
+            },
+            {
+                id: 12, zone: 2, topic: "Pantulan Cahaya", construct: "MENGAPLIKASI", type: "mcq", difficulty: "Sederhana",
+                question: "Pemandu kereta menggunakan cermin sisi untuk melihat kenderaan di belakang. Apakah sifat cahaya yang diaplikasikan dalam situasi ini?",
+                options: ["Cahaya boleh dibiaskan", "Cahaya boleh dipantulkan", "Cahaya boleh menembusi objek legap", "Cahaya bergerak melengkung"],
+                answer: 1,
+                explanation: "Cermin sisi memantulkan sinar cahaya dari kenderaan di belakang terus ke mata pemandu.",
+                hint: "Cermin membalikkan imej yang terkena padanya."
+            },
+            {
+                id: 13, zone: 2, topic: "Bayang-bayang", construct: "MENAAKUL", type: "mcq", difficulty: "Mencabar",
+                question: "Dalam satu penyiasatan, jarak antara lampu suluh dengan objek diubah dari 50 cm menjadi 10 cm. Apakah perubahan pada saiz bayang-bayang pada skrin?",
+                options: ["Saiz bayang-bayang menjadi semakin mengecil", "Saiz bayang-bayang menjadi semakin membesar", "Saiz bayang-bayang kekal sama", "Bayang-bayang hilang sepenuhnya"],
+                answer: 1,
+                explanation: "Semakin dekat jarak antara sumber cahaya dengan objek, semakin besar saiz bayang-bayang yang terbentuk.",
+                hint: "Mendekatkan cahaya ke objek menyekat lebih banyak sinaran cahaya."
+            },
+            {
+                id: 14, zone: 2, topic: "Bunyi", construct: "MENGETAHUI", type: "mcq", difficulty: "Mudah",
+                question: "Bagaimanakah bunyi dihasilkan apabila seseorang memetik tali gitar?",
+                options: ["Melalui tiupan angin", "Melalui getaran objek", "Melalui geseran cahaya", "Melalui pemanasan suhu"],
+                answer: 1,
+                explanation: "Bunyi terhasil daripada getaran bahan atau objek. Tali gitar yang dipetik bergetar dan menghasilkan gelombang bunyi.",
+                hint: "Pergerakan berulang-ulang dengan cepat dinamakan apa?"
+            },
+            {
+                id: 15, zone: 2, topic: "Pencemaran Bunyi", construct: "MENGAPLIKASI", type: "mcq", difficulty: "Sederhana",
+                question: "Pekerja di tapak pembinaan digalakkan memakai penutup telinga (earmuffs). Mengapa?",
+                options: ["Untuk kelihatan kemas", "Elak habuk masuk dalam telinga", "Melindungi pendengaran daripada bunyi bising yang merosakkan", "Supaya boleh mendengar radio"],
+                answer: 2,
+                explanation: "Bunyi yang terlalu bising (pencemaran bunyi) melebihi paras selamat boleh merosakkan gegendang telinga.",
+                hint: "Bunyi bising jentera berat berbahaya untuk organ deria pendengaran."
+            },
+            {
+                id: 16, zone: 2, topic: "Bunyi", construct: "MENGAPLIKASI", type: "multi", subType: "match", difficulty: "Sederhana",
+                question: "Padankan alat muzik berikut dengan cara penghasilan bunyinya.",
+                pairs: [
+                    { item: "Seruling", match: "Tiupan" },
+                    { item: "Drum", match: "Ketukan" },
+                    { item: "Biola", match: "Geseran" }
+                ],
+                optionsPool: ["Tiupan", "Ketukan", "Geseran", "Petikan"],
+                explanation: "Seruling ditiup, drum diketuk, dan biola digesek dengan penggesek untuk bergetar.",
+                hint: "Fikirkan cara pergerakan fizikal tangan/mulut dimainkan."
+            },
+            {
+                id: 17, zone: 2, topic: "Cahaya", construct: "MENGETAHUI", type: "multi", subType: "true_false", difficulty: "Mudah",
+                question: "Tentukan sama ada pernyataan berikut mengenai sifat cahaya adalah BETUL atau SALAH.",
+                statements: [
+                    { text: "Cahaya bergerak dalam garis lurus.", correct: true },
+                    { text: "Cahaya tidak boleh dipantulkan oleh permukaan licin.", correct: false },
+                    { text: "Pelangi terhasil akibat pembiasan cahaya matahari oleh titisan air.", correct: true }
+                ],
+                explanation: "Cahaya bergerak lurus, boleh dipantulkan oleh permukaan licin/kilat, dan dibiaskan apabila melalui medium berbeza (titisan air).",
+                hint: "Ingat eksperimen pelangi dan cermin di bilik darjah."
+            },
+            {
+                id: 18, zone: 2, topic: "Bayang-bayang", construct: "MENAAKUL", type: "subjective", difficulty: "Mencabar",
+                question: "Mengapakah bayang-bayang sebatang pokok di padang sekolah berada paling pendek pada waktu tengah hari?",
+                keywords: ["matahari", "tegak", "atas", "kedudukan", "sudut"],
+                sampleAnswer: "Kerana kedudukan Matahari berada tepat tegak di atas pokok pada waktu tengah hari.",
+                explanation: "Apabila sumber cahaya tepat di atas objek, sudut pancaran berada pada 90 darjah menghasilkan bayang-bayang terpendek.",
+                hint: "Taip kata kunci seperti 'Matahari' atau 'atas'."
+            },
+            {
+                id: 19, zone: 2, topic: "Bunyi", construct: "MENGAPLIKASI", type: "subjective", difficulty: "Sederhana",
+                question: "Mengapakah dinding di dalam panggung wayang atau bilik rakaman muzik dilapisi dengan langsir tebal atau span khas?",
+                keywords: ["serap", "gema", "pantulan", "kurang", "bunyi"],
+                sampleAnswer: "Untuk menyerap bunyi dan mengurangkan pantulan gema supaya bunyi lebih jelas.",
+                explanation: "Permukaan lembut dan berongga seperti span dan langsir menyerap gelombang bunyi dan mengelakkan gema bising.",
+                hint: "Taip kata kunci seperti 'serap' atau 'gema'."
+            },
+            {
+                id: 20, zone: 2, topic: "Cahaya", construct: "MENAAKUL", type: "subjective", difficulty: "Mencabar",
+                question: "Mengapakah sebatang pensel kelihatan bengkok apabila sebahagian daripadanya dimasukkan ke dalam gelas berisi air?",
+                keywords: ["biasan", "pembiasan", "medium", "arah", "cahaya"],
+                sampleAnswer: "Kerana berlaku pembiasan cahaya apabila cahaya bergerak melalui dua medium yang berbeza (udara dan air).",
+                explanation: "Pembiasan cahaya berlaku apabila arah pergerakan cahaya membengkok semasa melalui udara ke air.",
+                hint: "Taip kata kunci seperti 'pembiasan' atau 'medium'."
+            },
+
+            // ==========================================
+            // ZON 3: DUNIA ELEKTRIK & TENAGA (Questions 21 to 30)
+            // ==========================================
+            {
+                id: 21, zone: 3, topic: "Litar Elektrik", construct: "MENGETAHUI", type: "mcq", difficulty: "Mudah",
+                question: "Apakah komponen litar elektrik yang berfungsi untuk menyambung atau memutuskan litar?",
+                options: ["Sel kering", "Mentol", "Suis", "Wayar kuprum"],
+                answer: 2,
+                explanation: "Suis berfungsi sebagai kawalan untuk melengkapkan (menyalakan) atau memutuskan litar elektrik.",
+                hint: "Alat yang dipetik untuk menyalakan atau mematikan lampu rumah."
+            },
+            {
+                id: 22, zone: 3, topic: "Konduktor & Penebat", construct: "MENGAPLIKASI", type: "mcq", difficulty: "Sederhana",
+                question: "Antara bahan berikut, yang manakah boleh digunakan untuk menggantikan wayar elektrik supaya mentol dalam litar tetap menyala?",
+                options: ["Pembaris plastik", "Paku besi", "Tali benang", "Pemadam getah"],
+                answer: 1,
+                explanation: "Paku besi ialah konduktor elektrik yang membenarkan arus elektrik mengalir menerusinya.",
+                hint: "Cari bahan yang diperbuat daripada logam."
+            },
+            {
+                id: 23, zone: 3, topic: "Litar Elektrik", construct: "MENAAKUL", type: "mcq", difficulty: "Mencabar",
+                question: "Dalam satu litar bersiri dengan 2 mentol, jika satu mentol terbakar, apakah yang berlaku kepada satu lagi mentol?",
+                options: ["Mentol bertambah terang", "Mentol tetap menyala", "Mentol terpadam", "Mentol meletup"],
+                answer: 2,
+                explanation: "Dalam litar bersiri, arus mengalir dalam satu laluan sahaja. Apabila satu mentol terbakar, laluan terputus dan mentol lain terpadam.",
+                hint: "Litar bersiri hanya mempunyai satu laluan arus sahaja."
+            },
+            {
+                id: 24, zone: 3, topic: "Sumber Tenaga", construct: "MENGETAHUI", type: "mcq", difficulty: "Mudah",
+                question: "Antara berikut, yang manakah merupakan sumber tenaga yang Boleh Dibaharui?",
+                options: ["Petroleum", "Arang batu", "Tenaga Angin", "Gas asli"],
+                answer: 2,
+                explanation: "Tenaga angin, matahari, dan biojisim adalah sumber tenaga boleh dibaharui yang tidak akan habis digunakan.",
+                hint: "Sumber tenaga semula jadi yang berterusan dan tidak akan habis."
+            },
+            {
+                id: 25, zone: 3, topic: "Perubahan Tenaga", construct: "MENGAPLIKASI", type: "mcq", difficulty: "Sederhana",
+                question: "Apakah perubahan bentuk tenaga yang berlaku apabila sebuah radio dipasang menggunakan sel kering?",
+                options: ["Tenaga Kimia ➔ Tenaga Elektrik ➔ Tenaga Bunyi", "Tenaga Haba ➔ Tenaga Cahaya", "Tenaga Kinetik ➔ Tenaga Kimia", "Tenaga Bunyi ➔ Tenaga Keupayaan"],
+                answer: 0,
+                explanation: "Sel kering menyimpan tenaga kimia, ditukar kepada elektrik dalam litar, dan akhirnya menjadi bunyi pada pembesar suara.",
+                hint: "Bateri mengandungi tenaga kimia yang mengalirkan elektrik."
+            },
+            {
+                id: 26, zone: 3, topic: "Konduktor & Penebat", construct: "MENGAPLIKASI", type: "multi", subType: "true_false", difficulty: "Sederhana",
+                question: "Tentukan sama ada objek berikut adalah KONDUKTOR (Benar) atau PENEBAT (Salah) elektrik.",
+                statements: [
+                    { text: "Kunci tembaga ialah konduktor elektrik.", correct: true },
+                    { text: "Sudu plastik ialah konduktor elektrik.", correct: false },
+                    { text: "Klip kertas logam membenarkan arus elektrik mengalir.", correct: true }
+                ],
+                explanation: "Bahan logam seperti tembaga dan besi ialah konduktor elektrik, manakala plastik ialah penebat elektrik.",
+                hint: "Bahan logam membenarkan arus mengalir."
+            },
+            {
+                id: 27, zone: 3, topic: "Perubahan Tenaga", construct: "MENGETAHUI", type: "multi", subType: "match", difficulty: "Mudah",
+                question: "Padankan alat elektrik berikut dengan perubahan tenaga utamanya.",
+                pairs: [
+                    { item: "Seterika Elektrik", match: "Tenaga Haba" },
+                    { item: "Lampu Mentol", match: "Tenaga Cahaya" },
+                    { item: "Kipas Angin", match: "Tenaga Kinetik" }
+                ],
+                optionsPool: ["Tenaga Haba", "Tenaga Cahaya", "Tenaga Kinetik", "Tenaga Kimia"],
+                explanation: "Seterika menghasilkan haba, mentol menghasilkan cahaya, dan kipas angin berputar (kinetik).",
+                hint: "Fikirkan hasil kegunaan utama alat tersebut."
+            },
+            {
+                id: 28, zone: 3, topic: "Konduktor & Penebat", construct: "MENAAKUL", type: "subjective", difficulty: "Mencabar",
+                question: "Mengapakah wayar elektrik di rumah dibalut dengan lapisan plastik di bahagian luar manakala bahagian dalamnya menggunakan kuprum?",
+                keywords: ["penebat", "renjatan", "keselamatan", "konduktor", "mengalir"],
+                sampleAnswer: "Kuprum di dalam ialah konduktor untuk mengalirkan elektrik, manakala plastik di luar ialah penebat untuk mengelakkan renjatan elektrik.",
+                explanation: "Plastik melindung pengguna daripada terkena renjatan elektrik kerana plastik tidak mengalirkan elektrik.",
+                hint: "Taip kata kunci seperti 'penebat' atau 'renjatan'."
+            },
+            {
+                id: 29, zone: 3, topic: "Sumber Tenaga", construct: "MENGAPLIKASI", type: "subjective", difficulty: "Sederhana",
+                question: "Nyatakan dua contoh sumber tenaga yang TIDAK Boleh Dibaharui.",
+                keywords: ["petroleum", "arang", "gas", "nuklear"],
+                sampleAnswer: "Petroleum, arang batu, dan gas asli.",
+                explanation: "Bahan api fosil seperti petroleum dan arang batu mengambil masa jutaan tahun untuk terbentuk dan akan habis.",
+                hint: "Taip nama bahan api fosil seperti 'petroleum' atau 'arang batu'."
+            },
+            {
+                id: 30, zone: 3, topic: "Sumber Tenaga", construct: "MENAAKUL", type: "subjective", difficulty: "Mencabar",
+                question: "Mengapakah penggunaan tenaga solar (Matahari) lebih baik untuk alam sekitar berbanding pembakaran arang batu?",
+                keywords: ["bersih", "cemar", "pencemaran", "habis", "mesra"],
+                sampleAnswer: "Kerana tenaga solar adalah bersih, tidak mencemarkan udara, dan tidak akan habis.",
+                explanation: "Pembakaran arang batu membebaskan gas karbon yang mencemarkan udara, manakala tenaga solar mesra alam.",
+                hint: "Taip kata kunci seperti 'bersih' atau 'pencemaran'."
+            },
+
+            // ==========================================
+            // ZON 4: DUNIA BAHAN (Questions 31 to 40)
+            // ==========================================
+            {
+                id: 31, zone: 4, topic: "Sumber Asas Bahan", construct: "MENGETAHUI", type: "mcq", difficulty: "Mudah",
+                question: "Kasut kulit dan baju benang sutera diperbuat daripada bahan yang berasal daripada sumber asas apa?",
+                options: ["Tumbuhan", "Haiwan", "Batuan", "Petroleum"],
+                answer: 1,
+                explanation: "Kulit lembu/kambing dan kokun ulat sutera berasal daripada sumber asas haiwan.",
+                hint: "Lembu dan ulat sutera berada dalam kumpulan apa?"
+            },
+            {
+                id: 32, zone: 4, topic: "Sifat Bahan", construct: "MENGAPLIKASI", type: "mcq", difficulty: "Sederhana",
+                question: "Mengapakah kain sintetik atau plastik digunakan untuk membuat payung dan baju hujan?",
+                options: ["Kerana bahan ini menyerap air", "Kerana bahan ini kalis air", "Kerana bahan ini boleh mengalirkan elektrik", "Kerana bahan ini sangat lembut"],
+                answer: 1,
+                explanation: "Plastik bersifat kalis air, iaitu tidak membenarkan air meresap menerusinya supaya pengguna kekal kering.",
+                hint: "Payung menghalang air hujan daripada membasahi kita."
+            },
+            {
+                id: 33, zone: 4, topic: "Terapung & Tenggelam", construct: "MENAAKUL", type: "mcq", difficulty: "Mencabar",
+                question: "Sebiji telur ayam tenggelam di dalam air tawar. Apabila beberapa sudu garam dilarutkan ke dalam air tersebut, telur itu mula terapung. Mengapa?",
+                options: ["Air garam menjadi kurang tumpat", "Garam menjadikan air lebih tumpat daripada telur", "Telur menjadi lebih ringan apabila kena garam", "Suhu air meningkat"],
+                answer: 1,
+                explanation: "Penambahan garam meningkatkan ketumpatan air. Apabila air garam lebih tumpat daripada telur, telur akan terapung.",
+                hint: "Garam menambah jisim cecair dan meningkatkan ketumpatannya."
+            },
+            {
+                id: 34, zone: 4, topic: "Kegunaan Bahan", construct: "MENGAPLIKASI", type: "mcq", difficulty: "Sederhana",
+                question: "Pakcik Lee mahu membina sebuah almari pakaian yang kukuh, kuat, dan tahan lama. Apakah bahan yang paling sesuai digunakan?",
+                options: ["Kertas manila", "Kayu", "Kain kapas", "Plastik nipis"],
+                answer: 1,
+                explanation: "Kayu yang berasal daripada batuan/tumbuhan bersifat keras, kukuh dan mampu menampung beban berat.",
+                hint: "Bahan semula jadi dari batang pokok yang keras."
+            },
+            {
+                id: 35, zone: 4, topic: "Terapung & Tenggelam", construct: "MENGETAHUI", type: "mcq", difficulty: "Mudah",
+                question: "Apakah faktor utama yang menentukan sama ada sesuatu objek akan terapung atau tenggelam di dalam air?",
+                options: ["Saiz objek sahaja", "Warna objek", "Ketumpatan objek berbanding air", "Harga objek"],
+                answer: 2,
+                explanation: "Objek kurang tumpat daripada air akan terapung, manakala objek lebih tumpat daripada air akan tenggelam.",
+                hint: "Konsep perbandingan jisim per isi padu dipanggil apa?"
+            },
+            {
+                id: 36, zone: 4, topic: "Sumber Asas Bahan", construct: "MENGETAHUI", type: "multi", subType: "match", difficulty: "Mudah",
+                question: "Padankan objek berikut dengan sumber asas bahannya.",
+                pairs: [
+                    { item: "Tayar Kereta", match: "Petroleum" },
+                    { item: "Baju Kapas", match: "Tumbuhan" },
+                    { item: "Cermin Kaca", match: "Batuan" }
+                ],
+                optionsPool: ["Petroleum", "Tumbuhan", "Batuan", "Haiwan"],
+                explanation: "Getah sintetik/plastik dari petroleum, kapas dari pokok kapas, dan kaca dari pasir/batuan.",
+                hint: "Fikirkan bahan mentah asalnya dari alam semula jadi."
+            },
+            {
+                id: 37, zone: 4, topic: "Sifat Bahan", construct: "MENGAPLIKASI", type: "multi", subType: "true_false", difficulty: "Sederhana",
+                question: "Tentukan sama ada pernyataan mengenai sifat bahan ini BETUL atau SALAH.",
+                statements: [
+                    { text: "Kain kapas sesuai digunakan untuk mengelap tumpahan air kerana menyerap air.", correct: true },
+                    { text: "Kaca bersifat lut sinar kerana membenarkan semua cahaya melaluinya.", correct: true },
+                    { text: "Logam ialah penebat haba yang baik.", correct: false }
+                ],
+                explanation: "Kain kapas menyerap air, kaca lut sinar, manakala logam ialah konduktor haba (bukan penebat haba).",
+                hint: "Logam menjadi panas dengan cepat apabila dipanaskan."
+            },
+            {
+                id: 38, zone: 4, topic: "Terapung & Tenggelam", construct: "MENAAKUL", type: "subjective", difficulty: "Mencabar",
+                question: "Mengapakah jaket keselamatan (life jacket) diperbuat daripada bahan berongga atau span bernyawa yang kurang tumpat daripada air?",
+                keywords: ["terapung", "tumpat", "selamat", "tenggelam", "air"],
+                sampleAnswer: "Supaya jaket keselamatan terapung di permukaan air dan menyelamatkan pemakai daripada tenggelam.",
+                explanation: "Bahan kurang tumpat daripada air sentiasa terapung di permukaan cecair.",
+                hint: "Taip kata kunci seperti 'terapung' atau 'tumpat'."
+            },
+            {
+                id: 39, zone: 4, topic: "Kegunaan Bahan", construct: "MENGAPLIKASI", type: "subjective", difficulty: "Sederhana",
+                question: "Nyatakan dua bahan bersifat penebat haba yang sesuai digunakan untuk membuat pemegang periuk supaya tangan tidak melecur.",
+                keywords: ["plastik", "kayu", "getah"],
+                sampleAnswer: "Plastik dan kayu.",
+                explanation: "Plastik dan kayu tidak mengalirkan haba dengan baik (penebat haba), jadi pemegang kekal sejuk.",
+                hint: "Taip nama bahan seperti 'plastik' atau 'kayu'."
+            },
+            {
+                id: 40, zone: 4, topic: "Terapung & Tenggelam", construct: "MENAAKUL", type: "subjective", difficulty: "Mencabar",
+                question: "Sebiji span dan seketul batu mempunyai saiz yang sama. Mengapakah span terapung manakala batu tenggelam di dalam air?",
+                keywords: ["rongga", "udara", "tumpat", "batu", "kurang"],
+                sampleAnswer: "Span mempunyai banyak rongga udara menjadikannya kurang tumpat daripada air, manakala batu lebih tumpat daripada air.",
+                explanation: "Perangkap udara dalam rongga span mengurangkan ketumpatan keseluruhannya berbanding air.",
+                hint: "Taip kata kunci seperti 'rongga udara' atau 'kurang tumpat'."
+            },
+
+            // ==========================================
+            // ZON 5: DUNIA BUMI & AIR (Questions 41 to 50)
+            // ==========================================
+            {
+                id: 41, zone: 5, topic: "Putaran Bumi", construct: "MENGETAHUI", type: "mcq", difficulty: "Mudah",
+                question: "Berapakah tempoh masa yang diambil oleh Bumi untuk membuat satu putaran lengkap pada paksinya?",
+                options: ["12 jam", "24 jam (1 hari)", "30 hari", "365 ¼ hari"],
+                answer: 1,
+                explanation: "Bumi berputar pada paksinya mengambil masa 24 jam atau 1 hari lengkap.",
+                hint: "Tempoh satu kitaran siang dan malam lengkap."
+            },
+            {
+                id: 42, zone: 5, topic: "Peredaran Bumi", construct: "MENGAPLIKASI", type: "mcq", difficulty: "Sederhana",
+                question: "Apakah fenomena yang berlaku disebabkan oleh peredaran Bumi mengelilingi Matahari mengikut orbitnya?",
+                options: ["Kejadian siang dan malam", "Perubahan panjang bayang-bayang", "Kejadian empat musim", "Kitar air semula jadi"],
+                answer: 2,
+                explanation: "Peredaran Bumi mengelilingi Matahari selama 365 ¼ hari menyebabkan fenomena kejadian 4 musim di negara tertentu.",
+                hint: "Pergerakan mengelilingi Matahari mengambil masa satu tahun."
+            },
+            {
+                id: 43, zone: 5, topic: "Putaran Bumi", construct: "MENAAKUL", type: "mcq", difficulty: "Mencabar",
+                question: "Pada pukul 8.00 pagi, bayang-bayang tiang berada di sebelah barat. Pada pukul 4.00 petang, bayang-bayang berada di sebelah timur. Apakah kesimpulannya?",
+                options: ["Pokok berpindah tempat", "Arah bayang-bayang berubah akibat putaran Bumi dari barat ke timur", "Matahari berputar mengelilingi tiang", "Bumi berhenti berputar"],
+                answer: 1,
+                explanation: "Bumi berputar dari barat ke timur menyebabkan kedudukan Matahari kelihatan berubah, sekali gus mengubah arah bayang-bayang.",
+                hint: "Arah kedudukan Matahari bertentangan dengan arah bayang-bayang."
+            },
+            {
+                id: 44, zone: 5, topic: "Kitar Air", construct: "MENGETAHUI", type: "mcq", difficulty: "Mudah",
+                question: "Apakah proses di mana air cecair dari laut bertukar menjadi wap air apabila menerima haba daripada Matahari?",
+                options: ["Kondensasi", "Penyejatan", "Pembekuan", "Peleburan"],
+                answer: 1,
+                explanation: "Penyejatan ialah proses cecair bertukar menjadi gas (wap air) apabila dipanaskan.",
+                hint: "Air menjadi wap apabila mendapat haba."
+            },
+            {
+                id: 45, zone: 5, topic: "Kitar Air", construct: "MENGAPLIKASI", type: "mcq", difficulty: "Sederhana",
+                question: "Apakah yang berlaku apabila wap air di atmosfera terkumpul, mendingin, dan mengalami proses kondensasi?",
+                options: ["Wap air bertukar menjadi laut", "Wap air membentuk awan", "Matahari menjadi makin panas", "Tanah menjadi kering"],
+                answer: 1,
+                explanation: "Wap air yang naik ke udara mendingin dan terkondensasi membentuk titisan air halus yang berkumpul menjadi awan.",
+                hint: "Gumpalan putih di langit sebelum hujan."
+            },
+            {
+                id: 46, zone: 5, topic: "Kitar Air", construct: "MENGETAHUI", type: "multi", subType: "match", difficulty: "Sederhana",
+                question: "Padankan fasa kitar air berikut dengan penerangannya.",
+                pairs: [
+                    { item: "Penyejatan", match: "Air bertukar jadi wap air" },
+                    { item: "Kondensasi", match: "Wap air membentuk awan" },
+                    { item: "Hujan", match: "Titisan air jatuh ke Bumi" }
+                ],
+                optionsPool: ["Air bertukar jadi wap air", "Wap air membentuk awan", "Titisan air jatuh ke Bumi", "Air membeku jadi ais"],
+                explanation: "Penyejatan menghasilkan wap air, kondensasi membentuk awan, dan hujan mengembalikan air ke Bumi.",
+                hint: "Fikirkan urutan kejadian hujan dari bawah ke atas."
+            },
+            {
+                id: 47, zone: 5, topic: "Putaran Bumi", construct: "MENGAPLIKASI", type: "multi", subType: "true_false", difficulty: "Sederhana",
+                question: "Tentukan sama ada pernyataan berkaitan Bumi ini BETUL atau SALAH.",
+                statements: [
+                    { text: "Bumi berputar pada paksinya dari arah Barat ke Timur.", correct: true },
+                    { text: "Bahagian Bumi yang menghadap Matahari mengalami waktu malam.", correct: false },
+                    { text: "Putaran Bumi menyebabkan kedudukan Matahari kelihatan berubah.", correct: true }
+                ],
+                explanation: "Bumi berputar dari Barat ke Timur; bahagian menghadap Matahari mengalami waktu siang.",
+                hint: "Siang berlaku apabila mendapat cahaya Matahari secara terus."
+            },
+            {
+                id: 48, zone: 5, topic: "Putaran Bumi", construct: "MENAAKUL", type: "subjective", difficulty: "Mencabar",
+                question: "Mengapakah kawasan di Malaysia mengalami waktu malam apabila kawasan di Amerika Syarikat mengalami waktu siang?",
+                keywords: ["putaran", "menghadap", "belakang", "cahaya", "lindung"],
+                sampleAnswer: "Kerana Bumi berputar, apabila Amerika Syarikat menghadap Matahari, Malaysia berada di bahagian belakang yang terlindung dari cahaya.",
+                explanation: "Cahaya Matahari bergerak lurus dan tidak dapat menembusi Bumi yang legap, menyebabkan bahagian belakang mengalami malam.",
+                hint: "Taip kata kunci seperti 'putaran' atau 'menghadap'."
+            },
+            {
+                id: 49, zone: 5, topic: "Kitar Air", construct: "MENGAPLIKASI", type: "subjective", difficulty: "Sederhana",
+                question: "Apakah yang menyebabkan pakaian basah yang disidai di ampaian bawah sinar matahari menjadi kering selepas beberapa jam?",
+                keywords: ["sejat", "penyejatan", "haba", "wap", "air"],
+                sampleAnswer: "Haba Matahari menyebabkan air pada pakaian meresap dan menyejat menjadi wap air ke udara.",
+                explanation: "Proses penyejatan menukarkan cecair air pada pakaian menjadi gas wap air.",
+                hint: "Taip kata kunci seperti 'penyejatan' atau 'sejat'."
+            },
+            {
+                id: 50, zone: 5, topic: "Kitar Air", construct: "MENAAKUL", type: "subjective", difficulty: "Mencabar",
+                question: "Ramalkan apakah yang akan berlaku kepada bekalan air bersih dan hidupan di Bumi jika kitar air semula jadi terganggu akibat pemanasan global melampau?",
+                keywords: ["kemarau", "kurang", "terjejas", "mati", "pupus"],
+                sampleAnswer: "Berlaku kemarau berpanjangan, kekurangan air bersih, dan hidupan boleh mati.",
+                explanation: "Kitar air berterusan penting untuk membekalkan air bersih segar; gangguannya menyebabkan kemarau dan ancaman nyawa.",
+                hint: "Taip kata kunci seperti 'kemarau' atau 'kurang air'."
+            },
+
+            // ==========================================
+            // ZON 6: DUNIA DAYA & MESIN (Questions 51 to 60)
+            // ==========================================
+            {
+                id: 51, zone: 6, topic: "Daya", construct: "MENGETAHUI", type: "mcq", difficulty: "Mudah",
+                question: "Apakah jenis daya yang terlibat apabila seorang murid menolak kerusi ke bawah meja?",
+                options: ["Daya tarikan", "Daya tolakan", "Daya geseran sahaja", "Daya graviti"],
+                answer: 1,
+                explanation: "Daya tolakan ialah daya yang bertindak menjauhkan objek daripada kita.",
+                hint: "Pergerakan menjauhkan objek dari badan kita."
+            },
+            {
+                id: 52, zone: 6, topic: "Mesin Ringkas", construct: "MENGAPLIKASI", type: "mcq", difficulty: "Sederhana",
+                question: "Apakah tiga komponen utama yang terdapat pada sistem tuas?",
+                options: ["Beban, Fulkrum, dan Daya", "Batu, Kayu, dan Tali", "Roda, Gandar, dan Skru", "Baji, Magnet, dan Gear"],
+                answer: 0,
+                explanation: "Sistem tuas terdiri daripada Beban (berat objek), Fulkrum (titik sokongan), dan Daya (tolakan/tarikan).",
+                hint: "Komponen ringkas tuas: B, F, D."
+            },
+            {
+                id: 53, zone: 6, topic: "Tuas & Fulkrum", construct: "MENAAKUL", type: "mcq", difficulty: "Mencabar",
+                question: "Dalam prinsip tuas, manakah antara tindakan berikut yang akan mengurangkan daya yang diperlukan untuk mengangkat sesuatu beban yang berat?",
+                options: ["Mengarahkan fulkrum lebih dekat dengan beban", "Mengarahkan fulkrum lebih dekat dengan daya", "Memendekkan rod kayu tuas", "Menambah berat beban"],
+                answer: 0,
+                explanation: "Mendekatkan kedudukan fulkrum dengan beban mengurangkan jarak beban-fulkrum, menjadikan daya yang diperlukan lebih sedikit.",
+                hint: "Mendekatkan titik sokongan ke objek berat memudahkannya diangkat."
+            },
+            {
+                id: 54, zone: 6, topic: "Mesin Ringkas", construct: "MENGETAHUI", type: "mcq", difficulty: "Mudah",
+                question: "Pisau, kapak, dan pemahat merupakan contoh alat yang menggunakan prinsip mesin ringkas jenis apa?",
+                options: ["Tuas", "Baji", "Takal", "Satah condong"],
+                answer: 1,
+                explanation: "Baji ialah mesin ringkas yang mempunyai satu atau dua satah condong yang tajam untuk memotong atau memisahkan objek.",
+                hint: "Alat tajam yang digunakan untuk memotong kayu atau makanan."
+            },
+            {
+                id: 55, zone: 6, topic: "Mesin Ringkas", construct: "MENGAPLIKASI", type: "mcq", difficulty: "Sederhana",
+                question: "Apakah kegunaan satah condong (ramp) yang dipasang di pintu masuk hospital?",
+                options: ["Untuk kanak-kanak bermain geluncuran", "Memudahkan pergerakan kerusi roda pesakit ke tempat tinggi", "Untuk mencantikkan kawasan", "Menghalang air hujan masuk"],
+                answer: 1,
+                explanation: "Satah condong menghubungkan dua paras ketinggian berbeza untuk mengurangkan daya pergerakan beban berat/kerusi roda.",
+                hint: "Laluan miring menghubungkan aras rendah ke aras tinggi."
+            },
+            {
+                id: 56, zone: 6, topic: "Mesin Ringkas", construct: "MENGAPLIKASI", type: "multi", subType: "match", difficulty: "Sederhana",
+                question: "Padankan alat berikut dengan jenis mesin ringkas utamanya.",
+                pairs: [
+                    { item: "Penyapu", match: "Tuas" },
+                    { item: "Tangga Spiral", match: "Skru" },
+                    { item: "Papan Geluncur Ramp", match: "Satah Condong" }
+                ],
+                optionsPool: ["Tuas", "Skru", "Satah Condong", "Baji"],
+                explanation: "Penyapu menggunakan prinsip tuas, tangga berpilin ialah aplikasi skru, dan ramp ialah satah condong.",
+                hint: "Fikirkan bentuk dan cara alat tersebut berfungsi."
+            },
+            {
+                id: 57, zone: 6, topic: "Mesin Ringkas", construct: "MENGETAHUI", type: "multi", subType: "true_false", difficulty: "Mudah",
+                question: "Tentukan sama ada pernyataan mengenai mesin ringkas ini BETUL atau SALAH.",
+                statements: [
+                    { text: "Mesin ringkas membantu memudahkan dan mempercepatkan kerja kita.", correct: true },
+                    { text: "Gunting hanya mengandungi satu jenis mesin ringkas sahaja.", correct: false },
+                    { text: "Takal digunakan untuk menaikkan beban berat ke atas.", correct: true }
+                ],
+                explanation: "Mesin ringkas memudahkan kerja. Gunting ialah mesin kompleks yang menggabungkan tuas, baji, dan skru.",
+                hint: "Gunting mempunyai bilah tajam (baji), skru tengah, dan pemegang (tuas)."
+            },
+            {
+                id: 58, zone: 6, topic: "Tuas & Fulkrum", construct: "MENAAKUL", type: "subjective", difficulty: "Mencabar",
+                question: "Mengapakah lebih mudah mengalihkan ketul batu besar di jalan raya menggunakan rod kayu panjang dengan bantuan batu kecil sebagai fulkrum berbanding mengangkatnya secara terus?",
+                keywords: ["daya", "kurang", "tuas", "pengganda", "mudah"],
+                sampleAnswer: "Kerana sistem tuas bertindak sebagai pengganda daya yang mengurangkan daya tolakan yang diperlukan.",
+                explanation: "Prinsip tuas membolehkan daya yang kecil menghasilkan daya yang cukup besar untuk menggerakkan beban berat.",
+                hint: "Taip kata kunci seperti 'kurang daya' atau 'tuas'."
+            },
+            {
+                id: 59, zone: 6, topic: "Mesin Ringkas", construct: "MENGAPLIKASI", type: "subjective", difficulty: "Sederhana",
+                question: "Nyatakan dua jenis mesin ringkas yang terdapat pada sepasang pemangkas pokok (garden shears).",
+                keywords: ["tuas", "baji", "skru"],
+                sampleAnswer: "Tuas, baji, dan skru.",
+                explanation: "Pemangkas mengandungi tuas pada pemegang, baji pada bilah pemotong tajam, dan skru penyambung.",
+                hint: "Taip nama mesin ringkas seperti 'tuas', 'baji', atau 'skru'."
+            },
+            {
+                id: 60, zone: 6, topic: "Tuas & Fulkrum", construct: "MENAAKUL", type: "subjective", difficulty: "Mencabar",
+                question: "Apakah kesimpulan yang boleh dibuat tentang hubungan antara jarak fulkrum ke beban dengan daya yang diperlukan untuk mengangkat beban?",
+                keywords: ["dekat", "kurang", "sedikit", "mudah", "berkurang"],
+                sampleAnswer: "Semakin dekat jarak fulkrum dengan beban, semakin sedikit daya yang diperlukan untuk mengangkat beban.",
+                explanation: "Memendekkan jarak antara fulkrum dan beban meningkatkan kecekapan mekanikal tuas.",
+                hint: "Taip kata kunci seperti 'dekat' atau 'kurang daya'."
+            }
+        ];
+
+        /* ZONES METADATA */
+        const ZONES = [
+            { id: 1, name: "🧠 DUNIA HIDUPAN", icon: "🧠", topics: "Gigi, Haiwan, Tumbuhan, Rangsangan, Pernafasan" },
+            { id: 2, name: "💡 DUNIA CAHAYA & BUNYI", icon: "💡", topics: "Pantulan, Bayang-bayang, Bunyi, Gema" },
+            { id: 3, name: "⚡ DUNIA ELEKTRIK & TENAGA", icon: "⚡", topics: "Litar, Konduktor, Penebat, Sumber Tenaga" },
+            { id: 4, name: "🧱 DUNIA BAHAN", icon: "🧱", topics: "Sifat Bahan, Sumber Asas, Ketumpatan" },
+            { id: 5, name: "🪐 DUNIA BUMI & AIR", icon: "🪐", topics: "Putaran Bumi, Siang/Malam, Kitar Air" },
+            { id: 6, name: "🚀 DUNIA DAYA & MESIN", icon: "🚀", topics: "Daya, Mesin Ringkas, Tuas, Fulkrum" }
+        ];
+    </script>
+
+    <script>
+        class SainsExplorerApp {
+            constructor() {
+                this.playerName = "Saintis Muda";
+                this.currentZoneId = 1;
+                this.currentQuestionIndex = 0; // index in current zone array
+                this.activeQuestionList = [];
+                this.score = 0;
+                this.streak = 0;
+                this.bestStreak = 0;
+                this.lives = 3;
+                this.hintsLeft = 3;
+
+                // User answers tracking: { [qId]: { isCorrect, userAns, attempts, construct, topic, zone } }
+                this.userAnswers = {};
+
+                // Teacher tracking metrics
+                this.totalSessions = 1;
+            }
+
+            init() {
+                this.showStartScreen();
+            }
+
+            showStartScreen() {
+                this.hideAllViews();
+                document.getElementById('viewStart').classList.remove('hidden');
+                document.getElementById('topStatsBar').classList.add('hidden');
+            }
+
+            startMission() {
+                const nameInput = document.getElementById('inputPlayerName').value.trim();
+                if (nameInput) this.playerName = nameInput;
+                soundSystem.playClick();
+                this.showZoneMap();
+            }
+
+            showZoneMap() {
+                this.hideAllViews();
+                document.getElementById('viewZoneMap').classList.remove('hidden');
+                document.getElementById('topStatsBar').classList.remove('hidden');
+                this.updateStatsUI();
+                this.renderZoneGrid();
+            }
+
+            renderZoneGrid() {
+                const grid = document.getElementById('zoneGrid');
+                grid.innerHTML = '';
+
+                let totalCompletedQs = Object.keys(this.userAnswers).length;
+                document.getElementById('overallProgressText').innerText = `${totalCompletedQs} / 60 Soalan`;
+                document.getElementById('overallProgressBar').style.width = `${(totalCompletedQs / 60) * 100}%`;
+
+                ZONES.forEach(zone => {
+                    const zoneQs = QUESTIONS_BANK.filter(q => q.zone === zone.id);
+                    const completedInZone = zoneQs.filter(q => this.userAnswers[q.id] !== undefined).length;
+                    const isUnlocked = zone.id === 1 || this.isZoneUnlocked(zone.id);
+
+                    const card = document.createElement('div');
+                    card.className = `glass-card p-5 rounded-2xl border transition duration-300 relative overflow-hidden flex flex-col justify-between ${
+                        isUnlocked ? 'border-cyan-500/40 hover:border-cyan-400 cursor-pointer shadow-lg hover:shadow-cyan-500/20' : 'border-slate-800 opacity-60'
+                    }`;
+
+                    card.innerHTML = `
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-3xl">${zone.icon}</span>
+                                <span class="text-xs font-extrabold px-2.5 py-1 rounded-full ${completedInZone === 10 ? 'bg-emerald-950 text-emerald-400 border border-emerald-500/30' : 'bg-slate-800 text-cyan-300'}">
+                                    ${completedInZone}/10 Soalan
+                                </span>
+                            </div>
+                            <h3 class="font-extrabold text-base text-white">${zone.name}</h3>
+                            <p class="text-xs text-slate-400">${zone.topics}</p>
+                        </div>
+
+                        <div class="mt-4 pt-3 border-t border-slate-700/60 space-y-2">
+                            <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+                                <div class="bg-gradient-to-r from-teal-400 to-cyan-400 h-full" style="width: ${(completedInZone / 10) * 100}%"></div>
+                            </div>
+                            <button ${isUnlocked ? `onclick="app.enterZone(${zone.id})"` : 'disabled'} class="w-full py-2.5 px-3 rounded-xl text-xs font-extrabold ${
+                                isUnlocked ? 'bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 shadow-md' : 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                            }">
+                                ${isUnlocked ? (completedInZone === 10 ? '✅ SEMAK ZON' : '▶ MASUK ZON') : '🔒 TERKUNCI'}
+                            </button>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+            }
+
+            isZoneUnlocked(zoneId) {
+                // Zone unlocked if previous zone has at least 5 answered questions
+                const prevZoneQs = QUESTIONS_BANK.filter(q => q.zone === zoneId - 1);
+                const answeredCount = prevZoneQs.filter(q => this.userAnswers[q.id] !== undefined).length;
+                return answeredCount >= 5;
+            }
+
+            enterZone(zoneId) {
+                this.currentZoneId = zoneId;
+                this.activeQuestionList = QUESTIONS_BANK.filter(q => q.zone === zoneId);
+                
+                // Find first unanswered question in zone, else index 0
+                let firstUnansweredIdx = this.activeQuestionList.findIndex(q => this.userAnswers[q.id] === undefined);
+                this.currentQuestionIndex = firstUnansweredIdx !== -1 ? firstUnansweredIdx : 0;
+
+                soundSystem.playClick();
+                this.showQuizScreen();
+            }
+
+            showQuizScreen() {
+                this.hideAllViews();
+                document.getElementById('viewQuiz').classList.remove('hidden');
+                document.getElementById('topStatsBar').classList.remove('hidden');
+                this.renderCurrentQuestion();
+            }
+
+            renderCurrentQuestion() {
+                const q = this.activeQuestionList[this.currentQuestionIndex];
+                if (!q) return;
+
+                // Update Badges
+                const overallQNum = QUESTIONS_BANK.findIndex(item => item.id === q.id) + 1;
+                document.getElementById('qNumBadge').innerText = `SOALAN ${overallQNum}/60`;
+                document.getElementById('qConstructBadge').innerText = q.construct;
+                document.getElementById('qDiffBadge').innerText = q.difficulty;
+                document.getElementById('qTopicText').innerText = `${ZONES.find(z => z.id === q.zone).name} • ${q.topic}`;
+
+                // Set Question Text
+                document.getElementById('qQuestionText').innerText = q.question;
+
+                // Diagram container handling
+                const diagContainer = document.getElementById('qDiagramContainer');
+                if (q.diagram) {
+                    diagContainer.classList.remove('hidden');
+                    diagContainer.innerHTML = q.diagram;
+                } else {
+                    diagContainer.classList.add('hidden');
+                    diagContainer.innerHTML = '';
+                }
+
+                // Interaction Container Injection
+                const interactBox = document.getElementById('qInteractionContainer');
+                interactBox.innerHTML = '';
+
+                if (q.type === 'mcq') {
+                    q.options.forEach((opt, idx) => {
+                        const btn = document.createElement('button');
+                        btn.className = 'w-full p-3.5 rounded-xl text-left text-sm font-semibold glass-btn border border-slate-700 hover:border-cyan-400 flex items-center gap-3 transition cursor-pointer option-mcq';
+                        btn.onclick = () => this.selectMCQOption(idx);
+                        btn.innerHTML = `
+                            <span class="w-7 h-7 rounded-lg bg-slate-800 text-cyan-300 font-extrabold flex items-center justify-center text-xs border border-slate-700">
+                                ${String.fromCharCode(65 + idx)}
+                            </span>
+                            <span class="flex-1">${opt}</span>
+                        `;
+                        interactBox.appendChild(btn);
+                    });
+                    this.selectedMcqIdx = null;
+                } else if (q.type === 'multi') {
+                    if (q.subType === 'true_false') {
+                        q.statements.forEach((stmt, idx) => {
+                            const row = document.createElement('div');
+                            row.className = 'p-3 rounded-xl bg-slate-900/80 border border-slate-700/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs md:text-sm';
+                            row.innerHTML = `
+                                <span class="flex-1 font-medium">${idx + 1}. ${stmt.text}</span>
+                                <div class="flex items-center gap-2">
+                                    <button onclick="app.setTFOption(${idx}, true, this)" class="px-3 py-1.5 rounded-lg glass-btn border border-emerald-500/30 text-emerald-300 font-bold hover:bg-emerald-500/20">
+                                        BENAR
+                                    </button>
+                                    <button onclick="app.setTFOption(${idx}, false, this)" class="px-3 py-1.5 rounded-lg glass-btn border border-rose-500/30 text-rose-300 font-bold hover:bg-rose-500/20">
+                                        SALAH
+                                    </button>
+                                </div>
+                            `;
+                            interactBox.appendChild(row);
+                        });
+                        this.tfUserAns = {};
+                    } else if (q.subType === 'match') {
+                        q.pairs.forEach((pair, idx) => {
+                            const row = document.createElement('div');
+                            row.className = 'p-3 rounded-xl bg-slate-900/80 border border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs md:text-sm';
+                            
+                            let selectHtml = `<select id="matchSelect_${idx}" class="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-600 text-cyan-300 font-bold focus:outline-none focus:border-cyan-400">
+                                <option value="">-- Pilih Padanan --</option>
+                                ${q.optionsPool.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                            </select>`;
+
+                            row.innerHTML = `
+                                <span class="font-bold text-slate-200">${pair.item} ➔</span>
+                                ${selectHtml}
+                            `;
+                            interactBox.appendChild(row);
+                        });
+                    }
+                } else if (q.type === 'subjective') {
+                    const subBox = document.createElement('div');
+                    subBox.className = 'space-y-3';
+                    subBox.innerHTML = `
+                        <label class="block text-xs font-bold text-cyan-300 uppercase">Taip Jawapan Ringkas Anda:</label>
+                        <textarea id="inputSubjective" rows="3" placeholder="Taip jawapan anda di sini..." class="w-full p-3 rounded-xl bg-slate-900/90 border border-slate-600 text-white font-medium focus:outline-none focus:border-cyan-400 text-sm"></textarea>
+                        <p class="text-[11px] text-slate-400 italic">*Sistem semakan akan mengesan kata kunci Sains yang tepat.*</p>
+                    `;
+                    interactBox.appendChild(subBox);
+                }
+
+                this.updateStatsUI();
+            }
+
+            selectMCQOption(idx) {
+                soundSystem.playClick();
+                this.selectedMcqIdx = idx;
+                const buttons = document.querySelectorAll('.option-mcq');
+                buttons.forEach((btn, i) => {
+                    if (i === idx) {
+                        btn.classList.add('bg-cyan-950/80', 'border-cyan-400', 'ring-2', 'ring-cyan-400/30');
+                    } else {
+                        btn.classList.remove('bg-cyan-950/80', 'border-cyan-400', 'ring-2', 'ring-cyan-400/30');
+                    }
+                });
+            }
+
+            setTFOption(stmtIdx, boolValue, btnElem) {
+                soundSystem.playClick();
+                if (!this.tfUserAns) this.tfUserAns = {};
+                this.tfUserAns[stmtIdx] = boolValue;
+
+                const parent = btnElem.parentElement;
+                Array.from(parent.children).forEach(child => {
+                    child.classList.remove('bg-emerald-600', 'bg-rose-600', 'text-white');
+                });
+
+                if (boolValue) {
+                    btnElem.classList.add('bg-emerald-600', 'text-white');
+                } else {
+                    btnElem.classList.add('bg-rose-600', 'text-white');
+                }
+            }
+
+            submitCurrentAnswer() {
+                const q = this.activeQuestionList[this.currentQuestionIndex];
+                let isCorrect = false;
+
+                if (q.type === 'mcq') {
+                    if (this.selectedMcqIdx === null || this.selectedMcqIdx === undefined) {
+                        alert("Sila pilih satu jawapan pilihan terlebih dahulu!");
+                        return;
+                    }
+                    isCorrect = (this.selectedMcqIdx === q.answer);
+                } else if (q.type === 'multi') {
+                    if (q.subType === 'true_false') {
+                        if (!this.tfUserAns || Object.keys(this.tfUserAns).length < q.statements.length) {
+                            alert("Sila jawab semua pilihan Benar/Salah!");
+                            return;
+                        }
+                        isCorrect = q.statements.every((stmt, idx) => this.tfUserAns[idx] === stmt.correct);
+                    } else if (q.subType === 'match') {
+                        let allMatchedCorrect = true;
+                        for (let idx = 0; idx < q.pairs.length; idx++) {
+                            const sel = document.getElementById(`matchSelect_${idx}`);
+                            if (!sel || sel.value === "") {
+                                alert("Sila lengkapkan semua padanan!");
+                                return;
+                            }
+                            if (sel.value !== q.pairs[idx].match) {
+                                allMatchedCorrect = false;
+                            }
+                        }
+                        isCorrect = allMatchedCorrect;
+                    }
+                } else if (q.type === 'subjective') {
+                    const txt = document.getElementById('inputSubjective').value.trim().toLowerCase();
+                    if (!txt) {
+                        alert("Sila taip jawapan anda!");
+                        return;
+                    }
+                    // Keyword checking
+                    isCorrect = q.keywords.some(kw => txt.includes(kw.toLowerCase()));
+                }
+
+                // Process Answer Result
+                let pointsEarned = 0;
+                if (isCorrect) {
+                    soundSystem.playCorrect();
+                    this.streak += 1;
+                    if (this.streak > this.bestStreak) this.bestStreak = this.streak;
+
+                    // Score calculation with streak bonus
+                    let basePts = (q.type === 'subjective') ? 20 : 10;
+                    if (this.streak >= 3) {
+                        basePts *= 2; // Streak bonus 2X!
+                    }
+                    pointsEarned = basePts;
+                    this.score += pointsEarned;
+                } else {
+                    soundSystem.playWrong();
+                    this.streak = 0;
+                    this.lives = Math.max(0, this.lives - 1);
+
+                    // Card shake effect
+                    const quizCard = document.getElementById('quizCard');
+                    quizCard.classList.add('shake');
+                    setTimeout(() => quizCard.classList.remove('shake'), 500);
+                }
+
+                // Record user answer state
+                this.userAnswers[q.id] = {
+                    isCorrect: isCorrect,
+                    construct: q.construct,
+                    topic: q.topic,
+                    zone: q.zone,
+                    points: pointsEarned
+                };
+
+                this.showFeedbackModal(isCorrect, pointsEarned, q.explanation);
+                this.updateStatsUI();
+            }
+
+            useHint() {
+                if (this.hintsLeft <= 0) {
+                    alert("Petunjuk telah habis digunakan!");
+                    return;
+                }
+                const q = this.activeQuestionList[this.currentQuestionIndex];
+                if (!q) return;
+
+                soundSystem.playClick();
+                this.hintsLeft -= 1;
+                this.score = Math.max(0, this.score - 5); // Deduct 5 points per hint
+
+                alert(`💡 PETUNJUK SAINS:\n\n${q.hint}`);
+                this.updateStatsUI();
+            }
+
+            showFeedbackModal(isCorrect, pointsEarned, explanation) {
+                const modal = document.getElementById('modalFeedback');
+                const title = document.getElementById('fbStatusTitle');
+                const icon = document.getElementById('fbStatusIcon');
+                const ptsTag = document.getElementById('fbPointsTag');
+                const expText = document.getElementById('fbExplanationText');
+
+                if (isCorrect) {
+                    icon.innerText = '✅';
+                    title.innerText = 'BETUL!';
+                    title.className = 'text-2xl font-black text-emerald-400 tracking-tight';
+                    ptsTag.innerText = `+${pointsEarned} Mata!${this.streak >= 3 ? ' 🔥 STREAK BONUS 2X!' : ''}`;
+                    ptsTag.className = 'text-xs font-bold text-amber-300 bg-amber-950/60 inline-block px-3 py-1 rounded-full border border-amber-500/40';
+                } else {
+                    icon.innerText = '❌';
+                    title.innerText = 'CUBA LAGI!';
+                    title.className = 'text-2xl font-black text-rose-400 tracking-tight';
+                    ptsTag.innerText = '-1 Nyawa ❤️';
+                    ptsTag.className = 'text-xs font-bold text-rose-300 bg-rose-950/60 inline-block px-3 py-1 rounded-full border border-rose-500/40';
+                }
+
+                expText.innerText = explanation;
+                modal.classList.remove('hidden');
+            }
+
+            nextQuestion() {
+                document.getElementById('modalFeedback').classList.add('hidden');
+
+                if (this.lives <= 0) {
+                    alert("❤️ Nyawa anda telah habis! Misi akan ditamatkan.");
+                    this.showFinalResult();
+                    return;
+                }
+
+                this.currentQuestionIndex += 1;
+                if (this.currentQuestionIndex >= this.activeQuestionList.length) {
+                    // Check if all 60 questions are done
+                    const totalAnswered = Object.keys(this.userAnswers).length;
+                    if (totalAnswered >= 60) {
+                        this.showFinalResult();
+                    } else {
+                        alert(`🎉 MISI ZON SELESAI!\n\nAnda telah menyelesaikan Zon ini! Kembali ke peta penjelajahan.`);
+                        this.showZoneMap();
+                    }
+                } else {
+                    this.renderCurrentQuestion();
+                }
+            }
+
+            updateStatsUI() {
+                document.getElementById('statScore').innerText = this.score;
+                document.getElementById('statStreak').innerText = `${this.streak} 🔥`;
+                document.getElementById('statHints').innerText = this.hintsLeft;
+
+                // Streak bonus badge
+                const bonusBadge = document.getElementById('streakBonusBadge');
+                if (this.streak >= 3) {
+                    bonusBadge.classList.remove('hidden');
+                } else {
+                    bonusBadge.classList.add('hidden');
+                }
+
+                // Lives rendering
+                const livesElem = document.getElementById('statLives');
+                let heartsHtml = '';
+                for (let i = 0; i < 3; i++) {
+                    heartsHtml += (i < this.lives) ? '❤️ ' : '🖤 ';
+                }
+                livesElem.innerHTML = heartsHtml;
+            }
+
+            showFinalResult() {
+                this.hideAllViews();
+                document.getElementById('viewResult').classList.remove('hidden');
+
+                document.getElementById('resPlayerName').innerText = this.playerName;
+                document.getElementById('resScore').innerText = `${this.score} pts`;
+
+                const answeredEntries = Object.values(this.userAnswers);
+                const totalAnswered = answeredEntries.length;
+                const correctCount = answeredEntries.filter(a => a.isCorrect).length;
+                const wrongCount = totalAnswered - correctCount;
+
+                const percent = totalAnswered > 0 ? Math.round((correctCount / totalAnswered) * 100) : 0;
+                document.getElementById('resPercent').innerText = `${percent}%`;
+                document.getElementById('resCorrect').innerText = correctCount;
+                document.getElementById('resWrong').innerText = wrongCount;
+                document.getElementById('resBestStreak').innerText = `${this.bestStreak} 🔥`;
+
+                // Award Title
+                const awardBadge = document.getElementById('resAwardBadge');
+                if (percent >= 90) {
+                    awardBadge.innerText = '🏆 MASTER SAINS SEKLASIK';
+                } else if (percent >= 75) {
+                    awardBadge.innerText = '🥇 SAINTIS CEMERLANG';
+                } else if (percent >= 60) {
+                    awardBadge.innerText = '🥈 PENJELAJAH SAINS';
+                } else if (percent >= 40) {
+                    awardBadge.innerText = '🥉 SAINTIS SEDANG BERKEMBANG';
+                } else {
+                    awardBadge.innerText = '🌱 SAINTIS BAHARU';
+                }
+
+                // Construct Analysis
+                const kAns = answeredEntries.filter(a => a.construct === 'MENGETAHUI');
+                const aAns = answeredEntries.filter(a => a.construct === 'MENGAPLIKASI');
+                const nAns = answeredEntries.filter(a => a.construct === 'MENAAKUL');
+
+                const kCorrect = kAns.filter(a => a.isCorrect).length;
+                const aCorrect = aAns.filter(a => a.isCorrect).length;
+                const nCorrect = nAns.filter(a => a.isCorrect).length;
+
+                document.getElementById('resConstructK').innerText = `${kCorrect}/20`;
+                document.getElementById('resConstructA').innerText = `${aCorrect}/20`;
+                document.getElementById('resConstructN').innerText = `${nCorrect}/20`;
+
+                document.getElementById('resBarK').style.width = `${(kCorrect / 20) * 100}%`;
+                document.getElementById('resBarA').style.width = `${(aCorrect / 20) * 100}%`;
+                document.getElementById('resBarN').style.width = `${(nCorrect / 20) * 100}%`;
+
+                // Revision Recommendations
+                const wrongTopics = Array.from(new Set(answeredEntries.filter(a => !a.isCorrect).map(a => a.topic)));
+                const revList = document.getElementById('resRevisionList');
+                revList.innerHTML = '';
+
+                if (wrongTopics.length === 0) {
+                    revList.innerHTML = '<li>🎉 Syabas! Semua soalan telah dijawab dengan betul tanpa sebarang kesalahan.</li>';
+                } else {
+                    wrongTopics.forEach(top => {
+                        const li = document.createElement('li');
+                        li.innerText = `Sila buat ulang kaji semula bagi topik: ${top}`;
+                        revList.appendChild(li);
+                    });
+                }
+            }
+
+            showTeacherDashboard() {
+                this.hideAllViews();
+                document.getElementById('viewTeacher').classList.remove('hidden');
+
+                const answeredEntries = Object.values(this.userAnswers);
+                const totalAnswered = answeredEntries.length;
+                const correctCount = answeredEntries.filter(a => a.isCorrect).length;
+                const accuracy = totalAnswered > 0 ? Math.round((correctCount / totalAnswered) * 100) : 0;
+
+                document.getElementById('tchTotalSessions').innerText = this.totalSessions;
+                document.getElementById('tchAvgScore').innerText = `${this.score} pts`;
+                document.getElementById('tchAccuracy').innerText = `${accuracy}%`;
+
+                // Weak Topics Table
+                const wrongTopics = answeredEntries.filter(a => !a.isCorrect).map(a => a.topic);
+                const weakBox = document.getElementById('tchWeakTopics');
+                if (wrongTopics.length === 0) {
+                    weakBox.innerHTML = '<p class="text-emerald-400 font-bold">Tiada topik lemah direkodkan! Prestasi murid cemerlang.</p>';
+                } else {
+                    const freq = {};
+                    wrongTopics.forEach(t => freq[t] = (freq[t] || 0) + 1);
+                    const sortedWeak = Object.keys(freq).sort((a,b) => freq[b] - freq[a]);
+
+                    weakBox.innerHTML = sortedWeak.map(t => `<div class="flex justify-between border-b border-slate-800 pb-1"><span>• ${t}</span> <span class="font-bold text-rose-400">${freq[t]} kesalahan</span></div>`).join('');
+                }
+
+                // Table Breakdown
+                const tbody = document.getElementById('tchTableBody');
+                tbody.innerHTML = '';
+
+                ZONES.forEach(z => {
+                    const zQs = QUESTIONS_BANK.filter(q => q.zone === z.id);
+                    const zAns = zQs.map(q => this.userAnswers[q.id]).filter(a => a !== undefined);
+                    const zCorrect = zAns.filter(a => a.isCorrect).length;
+                    const zAcc = zAns.length > 0 ? Math.round((zCorrect / zAns.length) * 100) : 0;
+
+                    const row = document.createElement('tr');
+                    row.className = 'border-b border-slate-800 hover:bg-slate-800/40';
+                    row.innerHTML = `
+                        <td class="p-3 font-bold">${z.name}</td>
+                        <td class="p-3">${zAns.length} / 10</td>
+                        <td class="p-3 font-bold ${zAcc >= 70 ? 'text-emerald-400' : 'text-amber-400'}">${zAcc}%</td>
+                        <td class="p-3">${zAns.length === 10 ? '✅ Selesai' : '⏳ Dalam Proses'}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+
+            resetGame() {
+                this.score = 0;
+                this.streak = 0;
+                this.bestStreak = 0;
+                this.lives = 3;
+                this.hintsLeft = 3;
+                this.userAnswers = {};
+                this.totalSessions += 1;
+
+                this.showStartScreen();
+            }
+
+            hideAllViews() {
+                document.getElementById('viewStart').classList.add('hidden');
+                document.getElementById('viewZoneMap').classList.add('hidden');
+                document.getElementById('viewQuiz').classList.add('hidden');
+                document.getElementById('viewResult').classList.add('hidden');
+                document.getElementById('viewTeacher').classList.add('hidden');
+            }
+        }
+
+        // Initialize App on Window Load
+        let app;
+        window.onload = function () {
+            app = new SainsExplorerApp();
+            app.init();
+        };
+    </script>
+</body>
+</html>
